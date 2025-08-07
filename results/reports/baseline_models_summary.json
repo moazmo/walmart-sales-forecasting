@@ -1,0 +1,59 @@
+{
+  "experiment_date": "2025-08-07T18:28:11.432321",
+  "dataset_info": {
+    "total_records": 421570,
+    "train_records": 338738,
+    "validation_records": 82832,
+    "features_used": 87,
+    "date_range": [
+      "2010-02-05 00:00:00",
+      "2012-10-26 00:00:00"
+    ],
+    "validation_split_date": "2012-04-13 00:00:00"
+  },
+  "model_results": {
+    "Naive": {
+      "MAE": 1560.106641512045,
+      "RMSE": 3481.6471874058657,
+      "R2": 0.9748801336577071,
+      "MAPE": 2202.78619752909
+    },
+    "Moving_Average": {
+      "MAE": 1584.7714117799767,
+      "RMSE": 3512.4529167900205,
+      "R2": 0.974433644266188,
+      "MAPE": 2882.6501169356616
+    },
+    "Seasonal_Naive": {
+      "MAE": 1977.8888101820735,
+      "RMSE": 4224.06324127463,
+      "R2": 0.9630249620799584,
+      "MAPE": 47191.173063094975
+    },
+    "Linear_Regression": {
+      "MAE": 5920194.87249437,
+      "RMSE": 1703799091.8917959,
+      "R2": -6015677829.239775,
+      "MAPE": 300551049.9615087
+    },
+    "Ridge_Regression": {
+      "MAE": 3231421.4713846855,
+      "RMSE": 929962845.9742285,
+      "R2": -1792169162.5318239,
+      "MAPE": 164046350.21907586
+    },
+    "Random_Forest": {
+      "MAE": 210.94748705280017,
+      "RMSE": 431.15619415190673,
+      "R2": 0.9996147726935005,
+      "MAPE": 200.06484168037457
+    }
+  },
+  "best_model": "Random_Forest",
+  "key_insights": [
+    "Best performing model: Random_Forest",
+    "Validation period: 2012-04-20 00:00:00 to 2012-10-26 00:00:00",
+    "Number of features used: 87",
+    "Time-aware validation used to prevent data leakage"
+  ]
+}

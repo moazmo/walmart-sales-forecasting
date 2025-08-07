@@ -1,0 +1,21 @@
+{
+  "creation_date": "2025-08-07T18:06:08.980251",
+  "total_features": 89,
+  "total_records": 421570,
+  "date_range": [
+    "2010-02-05 00:00:00",
+    "2012-10-26 00:00:00"
+  ],
+  "stores": 45,
+  "departments": 81,
+  "feature_types": {
+    "Temporal": 26,
+    "Lag": 12,
+    "Rolling": 20,
+    "Store": 13,
+    "Department": 11,
+    "External": 20,
+    "Interaction": 9,
+    "Other": 5
+  }
+}

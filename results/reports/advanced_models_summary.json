@@ -1,0 +1,78 @@
+{
+  "experiment_date": "2025-08-07T19:47:49.560555",
+  "dataset_info": {
+    "total_records": 421570,
+    "features_used": 89,
+    "date_range": [
+      "2010-02-05 00:00:00",
+      "2012-10-26 00:00:00"
+    ],
+    "stores": 45,
+    "departments": 81
+  },
+  "models_evaluated": [
+    "XGBoost_CV",
+    "LightGBM_CV",
+    "XGBoost_Final",
+    "LightGBM_Final",
+    "Simple_Ensemble",
+    "Weighted_Ensemble",
+    "Prophet"
+  ],
+  "best_model": null,
+  "hyperparameter_optimization": {
+    "xgb_trials": 50,
+    "lgb_trials": 50,
+    "total_optimization_time": "Variable"
+  },
+  "performance_summary": {
+    "XGBoost_CV": {
+      "MAE_mean": 148.35118953140287,
+      "MAE_std": 52.12684185553335,
+      "RMSE_mean": 864.4186366287234,
+      "RMSE_std": 247.62694588176416,
+      "WMAE_mean": 183.9913240795456,
+      "WMAE_std": 65.84417919660477
+    },
+    "LightGBM_CV": {
+      "MAE_mean": 154.68962958374863,
+      "MAE_std": 52.10524511392745,
+      "RMSE_mean": 897.1612805550036,
+      "RMSE_std": 240.681760983233,
+      "WMAE_mean": 197.25277798942037,
+      "WMAE_std": 67.6961875130005
+    },
+    "XGBoost_Final": {
+      "MAE": 124.4655436866933,
+      "RMSE": 533.1012728757648,
+      "R2": 0.9994110651644285
+    },
+    "LightGBM_Final": {
+      "MAE": 127.6078135890894,
+      "RMSE": 517.0453810255897,
+      "R2": 0.9994460059119274
+    },
+    "Simple_Ensemble": {
+      "MAE": 111.21273864252406,
+      "RMSE": 503.4335599505851,
+      "R2": 0.9994747910345123
+    },
+    "Weighted_Ensemble": {
+      "MAE": 111.17334147952901,
+      "RMSE": 503.6183557494928,
+      "R2": 0.9994744053859128
+    },
+    "Prophet": {
+      "MAE_mean": 35109.87889302438,
+      "RMSE_mean": 44885.63707854551,
+      "predictions_count": 420
+    }
+  },
+  "key_insights": [
+    "Gradient boosting models significantly outperform baseline models",
+    "Hyperparameter optimization provides substantial improvements",
+    "Ensemble methods achieve best overall performance",
+    "Feature engineering is crucial for model performance",
+    "Time-aware validation prevents data leakage"
+  ]
+}
