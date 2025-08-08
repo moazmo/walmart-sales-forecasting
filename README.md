@@ -1,5 +1,7 @@
 # 🏪 Walmart Sales Forecasting System
 
+![Walmart Sales Forecasting Demo](docs/demo-image.png)
+
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116+-green.svg)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org)
