@@ -31,14 +31,26 @@ PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 def check_docker():
-    """Check if Docker is available."""
+    """Check if Docker is available and running."""
     try:
+        # Check if Docker is installed
         result = subprocess.run(['docker', '--version'], 
                               capture_output=True, text=True, check=True)
-        print(f"✅ Docker available: {result.stdout.strip()}")
+        print(f"✅ Docker installed: {result.stdout.strip()}")
+        
+        # Check if Docker daemon is running
+        result = subprocess.run(['docker', 'ps'], 
+                              capture_output=True, text=True, check=True)
+        print("✅ Docker daemon is running")
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("❌ Docker not found. Please install Docker to run the full system.")
+        
+    except subprocess.CalledProcessError as e:
+        print("❌ Docker daemon is not running")
+        print("💡 Please start Docker Desktop and wait for it to fully initialize")
+        print("💡 You can check Docker status with: docker ps")
+        return False
+    except FileNotFoundError:
+        print("❌ Docker not found. Please install Docker Desktop")
         return False
 
 def check_node():
@@ -71,6 +83,12 @@ def start_database():
         return True
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to start database services: {e}")
+        print("💡 Make sure Docker Desktop is running")
+        print("💡 Alternative: Use SQLite by setting DATABASE_URL=sqlite:///./walmart.db")
+        return False
+    except FileNotFoundError:
+        print("❌ Docker not found")
+        print("💡 Please install Docker or use SQLite for development")
         return False
 
 def check_port_available(port):
@@ -155,19 +173,50 @@ def start_frontend():
         # Install dependencies if needed
         if not (frontend_dir / 'node_modules').exists():
             print("📦 Installing frontend dependencies...")
-            subprocess.run(['npm', 'install'], 
-                         check=True, cwd=frontend_dir)
+            result = subprocess.run(['npm', 'install'], 
+                         capture_output=True, text=True, cwd=frontend_dir)
+            if result.returncode != 0:
+                print(f"❌ Failed to install dependencies: {result.stderr}")
+                return None
+            print("✅ Dependencies installed")
         
-        # Start development server
-        frontend_process = subprocess.Popen([
-            'npm', 'run', 'dev'
-        ], cwd=frontend_dir)
+        # Start development server in a new terminal window
+        print("🚀 Opening frontend development server in new terminal...")
         
-        print("✅ Frontend server started (PID: {})".format(frontend_process.pid))
-        return frontend_process
+        if sys.platform == "win32":
+            # Use PowerShell to start in a new window
+            cmd = f'Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd {frontend_dir}; npm run dev"'
+            subprocess.Popen(['powershell', '-Command', cmd])
+            
+            # Wait a moment for the server to start
+            time.sleep(5)
+            
+            # Check if the frontend is accessible
+            try:
+                import requests
+                response = requests.get('http://localhost:3000', timeout=5)
+                if response.status_code == 200:
+                    print("✅ Frontend server started successfully")
+                    print("🌐 Frontend URL: http://localhost:3000")
+                    return "started_in_new_window"
+                else:
+                    print("⚠️  Frontend server may still be starting...")
+                    print("🌐 Check: http://localhost:3000")
+                    return "starting"
+            except:
+                print("⚠️  Frontend server is starting in new terminal window")
+                print("🌐 Check: http://localhost:3000")
+                return "starting"
+        else:
+            # For non-Windows systems
+            subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', f'cd {frontend_dir} && npm run dev'])
+            return "started_in_new_window"
         
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         print(f"❌ Failed to start frontend server: {e}")
+        print("💡 You can start it manually with:")
+        print(f"   cd {frontend_dir}")
+        print("   npm run dev")
         return None
 
 def kill_process_on_port(port):
@@ -248,9 +297,9 @@ def main():
             
             # 3. Start frontend (optional)
             if args.frontend:
-                frontend_process = start_frontend()
-                if frontend_process:
-                    processes.append(frontend_process)
+                frontend_result = start_frontend()
+                if frontend_result and frontend_result not in ["started_in_new_window", "starting"]:
+                    processes.append(frontend_result)
             
             print("\n" + "=" * 60)
             print("🎉 System startup completed!")
@@ -261,6 +310,10 @@ def main():
             
             if args.frontend:
                 print("🎨 Frontend: http://localhost:3000")
+            else:
+                print("💡 To start frontend manually:")
+                print("   cd frontend")
+                print("   npm run dev")
             
             print("🗄️  Database: PostgreSQL on localhost:5432")
             print("🔄 Redis: localhost:6379")
