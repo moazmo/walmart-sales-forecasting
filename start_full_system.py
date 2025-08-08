@@ -18,6 +18,14 @@ import time
 import argparse
 from pathlib import Path
 
+# Try to import requests, install if not available
+try:
+    import requests
+except ImportError:
+    print("📦 Installing requests...")
+    subprocess.run([sys.executable, '-m', 'pip', 'install', 'requests'], check=True)
+    import requests
+
 # Add project root to Python path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -65,9 +73,41 @@ def start_database():
         print(f"❌ Failed to start database services: {e}")
         return False
 
+def check_port_available(port):
+    """Check if a port is available."""
+    import socket
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('localhost', port))
+            return True
+    except OSError:
+        return False
+
+def check_api_server_running():
+    """Check if API server is already running."""
+    try:
+        import requests
+        response = requests.get('http://localhost:8000/health', timeout=2)
+        return response.status_code == 200
+    except:
+        return False
+
 def start_api_server():
     """Start the API server."""
     print("🚀 Starting API server...")
+    
+    # Check if API server is already running
+    if check_api_server_running():
+        print("✅ API server is already running")
+        print("📊 API Documentation: http://localhost:8000/docs")
+        print("🔍 Health Check: http://localhost:8000/health")
+        return "already_running"
+    
+    # Check if port is available
+    if not check_port_available(8000):
+        print("❌ Port 8000 is in use by another process")
+        print("💡 Please stop the existing process or use a different port")
+        return None
     
     try:
         # Initialize database tables
@@ -85,8 +125,17 @@ def start_api_server():
             sys.executable, 'start_api.py'
         ], cwd=PROJECT_ROOT)
         
-        print("✅ API server started (PID: {})".format(api_process.pid))
-        return api_process
+        # Wait a moment for the server to start
+        time.sleep(3)
+        
+        # Verify the server started successfully
+        if check_api_server_running():
+            print("✅ API server started successfully (PID: {})".format(api_process.pid))
+            return api_process
+        else:
+            print("❌ API server failed to start properly")
+            api_process.terminate()
+            return None
         
     except Exception as e:
         print(f"❌ Failed to start API server: {e}")
@@ -121,6 +170,31 @@ def start_frontend():
         print(f"❌ Failed to start frontend server: {e}")
         return None
 
+def kill_process_on_port(port):
+    """Kill process running on specified port (Windows)."""
+    try:
+        # Find process using the port
+        result = subprocess.run([
+            'netstat', '-ano'
+        ], capture_output=True, text=True, check=True)
+        
+        lines = result.stdout.split('\n')
+        for line in lines:
+            if f':{port}' in line and 'LISTENING' in line:
+                parts = line.split()
+                if len(parts) >= 5:
+                    pid = parts[-1]
+                    try:
+                        subprocess.run(['taskkill', '/F', '/PID', pid], 
+                                     capture_output=True, check=True)
+                        print(f"✅ Killed process {pid} on port {port}")
+                        return True
+                    except subprocess.CalledProcessError:
+                        pass
+        return False
+    except Exception:
+        return False
+
 def main():
     """Main startup function."""
     parser = argparse.ArgumentParser(description='Start Walmart Sales Forecasting System')
@@ -128,6 +202,8 @@ def main():
                        help='Also start frontend development server')
     parser.add_argument('--docker-only', action='store_true',
                        help='Use Docker Compose for all services')
+    parser.add_argument('--kill-existing', action='store_true',
+                       help='Kill existing processes on required ports')
     
     args = parser.parse_args()
     
@@ -158,10 +234,17 @@ def main():
                 sys.exit(1)
             
             # 2. Start API server
+            if args.kill_existing:
+                print("🔄 Checking for existing processes...")
+                kill_process_on_port(8000)
+                time.sleep(2)
+            
             api_process = start_api_server()
-            if not api_process:
+            if api_process is None:
+                print("💡 Try running with --kill-existing flag to stop existing processes")
                 sys.exit(1)
-            processes.append(api_process)
+            elif api_process != "already_running":
+                processes.append(api_process)
             
             # 3. Start frontend (optional)
             if args.frontend:
