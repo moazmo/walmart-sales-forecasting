@@ -158,6 +158,9 @@ Thumbs.db
 logs/
 *.log
 
+# Runtime logs (ensure they're always ignored)
+logs/**/*
+
 # Runtime data
 pids
 *.pid
